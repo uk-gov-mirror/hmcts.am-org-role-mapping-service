@@ -1,0 +1,47 @@
+package validationrules.iac;
+import uk.gov.hmcts.reform.orgrolemapping.domain.model.RoleAssignment;
+import uk.gov.hmcts.reform.orgrolemapping.domain.model.enums.ActorIdType;
+import uk.gov.hmcts.reform.orgrolemapping.domain.model.enums.RoleCategory;
+import uk.gov.hmcts.reform.orgrolemapping.domain.model.enums.RoleType;
+import uk.gov.hmcts.reform.orgrolemapping.domain.model.enums.Classification;
+import uk.gov.hmcts.reform.orgrolemapping.domain.model.enums.GrantType;
+import uk.gov.hmcts.reform.orgrolemapping.domain.model.UserAccessProfile;
+import java.util.ArrayList;
+
+rule "iac_senior_tribunal_caseworker"
+when
+  $up: UserAccessProfile(roleId == "1", serviceCode == "BFA1", !deleteFlag)
+then
+  insert(
+      RoleAssignment.builder()
+      .actorIdType    (ActorIdType.IDAM)
+      .actorId        ($up.getId())
+      .roleCategory   (RoleCategory.STAFF)
+      .roleType       (RoleType.ORGANISATION)
+      .roleName       ("senior-tribunal-caseworker")
+      .grantType      (GrantType.STANDARD)
+      .classification (Classification.PUBLIC)
+      .readOnly       (false)
+      .attribute      ("jurisdiction", "IA")
+      .attribute      ("primaryLocation", $up.getPrimaryLocationId())
+      .build());
+end;
+
+rule "iac_tribunal_caseworker"
+when
+  $up: UserAccessProfile(roleId == "2", serviceCode == "BFA1", !deleteFlag)
+then
+  insert(
+      RoleAssignment.builder()
+      .actorIdType    (ActorIdType.IDAM)
+      .actorId        ($up.getId())
+      .roleCategory   (RoleCategory.STAFF)
+      .roleType       (RoleType.ORGANISATION)
+      .roleName       ("tribunal-caseworker")
+      .grantType      (GrantType.STANDARD)
+      .classification (Classification.PUBLIC)
+      .readOnly       (false)
+      .attribute      ("jurisdiction", "IA")
+      .attribute      ("primaryLocation", $up.getPrimaryLocationId())
+      .build());
+end;

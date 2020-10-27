@@ -1,0 +1,40 @@
+[
+	[
+		{
+			"id": "00000001",
+			"roleId": "1",
+			"roleName": "SENIORTRIBUNALCASEWORKER",
+			"primaryLocationId": "001",
+			"primaryLocationName": "Manchester",
+			"areaOfWorkId": "AOW01",
+			"serviceCode": "BFA1",
+			"deleteFlag": false
+		},
+		{
+			"id": "00000002",
+			"roleId": "2",
+			"roleName": "TRIBUNALCASEWORKER",
+			"primaryLocationId": "002",
+			"primaryLocationName": "Birmingham",
+			"areaOfWorkId": "AOW01",
+			"serviceCode": "BFA1",
+			"deleteFlag": false
+		}
+	],
+	[
+		{
+			"id": "00000003",
+			"roleId": "1",
+			"roleName": "SENIORTRIBUNALCASEWORKER",
+			"primaryLocationId": "001",
+			"primaryLocationName": "Manchester",
+			"areaOfWorkId": "AOW01",
+			"serviceCode": "BFA1",
+			"deleteFlag": false
+		},
+		{
+			"id": "00000002",
+			"deleteFlag": true
+		}
+	]
+]

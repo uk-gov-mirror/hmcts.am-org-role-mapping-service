@@ -1,19 +1,21 @@
 package uk.gov.hmcts.reform.orgrolemapping.domain.model;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 import uk.gov.hmcts.reform.orgrolemapping.domain.model.enums.ActorIdType;
 import uk.gov.hmcts.reform.orgrolemapping.domain.model.enums.Classification;
 import uk.gov.hmcts.reform.orgrolemapping.domain.model.enums.GrantType;
 import uk.gov.hmcts.reform.orgrolemapping.domain.model.enums.RoleCategory;
 import uk.gov.hmcts.reform.orgrolemapping.domain.model.enums.RoleType;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
 
 
 @Builder
@@ -34,8 +36,8 @@ public class RoleAssignment {
     private LocalDateTime endTime; // will be set to null for case-worker
     // there are only 2 attributes identified 1)jurisdiction=IA(set by mapping rule)
     // and primaryLocation=<Extract from Staff user>
-    private Map<String, JsonNode> attributes;
+    @Singular("attribute")
+    private Map<String, String> attributes;
     private JsonNode notes; //this would be empty for case-worker and reserved for future requirements.
     private List<String> authorisations; // this is not applicable for case-worker
-
 }
