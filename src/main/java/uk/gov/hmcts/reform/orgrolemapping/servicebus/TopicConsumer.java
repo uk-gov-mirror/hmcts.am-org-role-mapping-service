@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.orgrolemapping.servicebus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.orgrolemapping.domain.model.UserRequest;
 import uk.gov.hmcts.reform.orgrolemapping.domain.service.BulkAssignmentOrchestrator;
@@ -31,7 +30,7 @@ public class TopicConsumer {
 
     }
 
-    /*@JmsListener(
+/*    @JmsListener(
             destination = "${amqp.topic}",
             containerFactory = "topicJmsListenerContainerFactory",
             subscription = "${amqp.subscription}"
@@ -59,11 +58,11 @@ public class TopicConsumer {
     private void processMessage(String message) {
         UserRequest userRequest = deserializer.deserialize(message);
         log.info("TopicConsumer - Deserializer userRequest received from the service bus by ORM service {}",
-                userRequest);
-        if (userRequest != null) {
+                message);
+        /*if (userRequest != null) {
             ResponseEntity<Object> response = bulkAssignmentOrchestrator.createBulkAssignmentsRequest(userRequest);
             log.info("API Response {}", response.getStatusCode());
-        }
+        }*/
 
     }
 }

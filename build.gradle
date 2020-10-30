@@ -387,6 +387,14 @@ dependencies {
         exclude group: "org.springframework", module: "spring-web"
         exclude group: "org.springframework", module: "spring-webmvc"
     }
+
+
+    /*compile group: 'com.microsoft.azure', name: 'azure-client-runtime', version: '1.7.10'*/
+    compile group: 'com.microsoft.azure', name: 'azure', version: '1.3.0'
+    compile group: 'com.microsoft.azure', name: 'azure-storage', version: '8.6.5'
+    compile group: 'com.microsoft.azure', name: 'azure-servicebus', version: '3.4.0'
+
+
     compile group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: versions.launchDarklySdk
 
     compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.39'
