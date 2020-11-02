@@ -30,7 +30,7 @@ public class TopicConsumer {
 
     }
 
-/*    @JmsListener(
+/* @JmsListener(
             destination = "${amqp.topic}",
             containerFactory = "topicJmsListenerContainerFactory",
             subscription = "${amqp.subscription}"
