@@ -1,29 +1,13 @@
 /*
+
 package uk.gov.hmcts.reform.orgrolemapping.servicebus;
 
+import com.microsoft.azure.management.Azure;
 import reactor.core.Disposable;
 
 import java.util.concurrent.TimeUnit;
 
-*/
-/**
- * Sample demonstrates how to receive an {@link ServiceBusReceivedMessage} from an Azure Service Bus Queue and settle
- * it. Settling of message include {@link ServiceBusReceiverAsyncClient#complete(ServiceBusReceivedMessage) complete},
- * {@link ServiceBusReceiverAsyncClient#defer(ServiceBusReceivedMessage) defer},
- * {@link ServiceBusReceiverAsyncClient#abandon(ServiceBusReceivedMessage) abandon}, or
- * {@link ServiceBusReceiverAsyncClient#deadLetter(ServiceBusReceivedMessage) dead-letter} a message.
- *//*
-
 public class TopicConsumerAsync {
-
-    */
-/**
-     * Main method to invoke this demo on how to receive an {@link ServiceBusReceivedMessage} from an Azure Service Bus
-     * Queue
-     *
-     * @param args Unused arguments to the program.
-     * @throws InterruptedException If the program is unable to sleep while waiting for the operations to complete.
-     *//*
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -66,4 +50,5 @@ public class TopicConsumerAsync {
         // Close the receiver.
         receiver.close();
     }
-}*/
+}
+*/

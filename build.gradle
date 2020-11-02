@@ -396,16 +396,18 @@ dependencies {
 
     compile group: 'com.microsoft.azure', name: 'azure', version: '1.37.0'
     /*compile group: 'com.microsoft.azure', name: 'azure-storage', version: '8.6.5'*/
-    compile group: 'com.microsoft.azure', name: 'azure-servicebus', version: '3.4.0'
+    compile group: 'com.microsoft.azure', name: 'azure-servicebus', version: '3.3.0'
     compile group: 'io.projectreactor', name: 'reactor-core', version: '3.4.0'
 
     compile group: 'com.azure', name: 'azure-core', version: '1.10.0'
-    compile group: 'com.azure', name: 'azure-core-experimental', version: '1.0.0-beta.9'
-    compile group: 'com.azure', name: 'azure-core-amqp', version: '1.7.0-beta.1'
-    compile group: 'com.azure', name: 'azure-core-http-netty', version: '1.6.3'
+    //compile group: 'com.azure', name: 'azure-core-experimental', version: '1.0.0-beta.9'
+    //compile group: 'com.azure', name: 'azure-core-amqp', version: '1.7.0-beta.1'
+    //compile group: 'com.azure', name: 'azure-core-http-netty', version: '1.6.3'
 
 
     compile group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: versions.launchDarklySdk
+    // https://mvnrepository.com/artifact/commons-cli/commons-cli
+    compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
 
     compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.39'
     compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '9.0.39'
