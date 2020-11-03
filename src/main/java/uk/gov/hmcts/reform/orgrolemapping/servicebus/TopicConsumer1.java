@@ -25,16 +25,19 @@ import java.util.concurrent.Executors;
 public class TopicConsumer1 {
 
     static final Gson GSON = new Gson();
+    static final int maxRetries = 3;
 
     public static void main(String[] args) throws Exception {
         String connectionString = "Endpoint=sb://rd-servicebus-sandbox.servicebus.windows.net/;SharedAccessKeyName=SendAndListenSharedAccessKey;SharedAccessKey=97E6uvE6xHcqHAVlxufN1PH75tMHoZUe78FhsCbLLLQ=";
-        SubscriptionClient subscription1Client = new SubscriptionClient(new ConnectionStringBuilder(connectionString, "rd-caseworker-topic-sandbox/subscriptions/rd-caseworker-subscription-sandbox"), ReceiveMode.PEEKLOCK);
-         registerMessageHandlerOnClient(subscription1Client);
+        SubscriptionClient subscription1Client = new SubscriptionClient(new ConnectionStringBuilder(connectionString, "rd-caseworker-topic-sandbox/subscriptions/temporary"), ReceiveMode.PEEKLOCK);
+        SubscriptionClient subscription2Client = new SubscriptionClient(new ConnectionStringBuilder(connectionString, "rd-caseworker-topic-sandbox/subscriptions/temporary"), ReceiveMode.PEEKLOCK);
+        registerMessageHandlerOnClient(subscription1Client);
+        registerMessageHandlerOnClient(subscription2Client);
 
         log.info("clients registered.....");
     }
 
-   static void registerMessageHandlerOnClient(SubscriptionClient receiveClient) throws Exception {
+    static void registerMessageHandlerOnClient(SubscriptionClient receiveClient) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         log.info("registerMessageHandlerOnClient.....");
@@ -42,33 +45,42 @@ public class TopicConsumer1 {
             // callback invoked when the message handler loop has obtained a message
             @SneakyThrows
             public CompletableFuture<Void> onMessageAsync(IMessage message) {
+                int retryCount = 0;
                 log.info("onMessageAsync.....{}", message);
-                    List<byte[]> body = message.getMessageBody().getBinaryData();
-                    log.info("body.....{}", body);
-                      Integer users = null;
+                List<byte[]> body = message.getMessageBody().getBinaryData();
+                log.info("body.....{}", body);
+                log.info("token.....{}", message.getLockToken());
+                Integer users = null;
+                try {
+
+                    //int maxRetries = 3;
+                    //users = waitForRas(mapper, body, maxRetries);
+                    Thread.sleep(1000 * 10);
+                    users = mapper.readValue(body.get(0), Integer.class);
+
+                } catch (IOException e) {
                     try {
-                        users = mapper.readValue(body.get(0), Integer.class);
-                    } catch (IOException e) {
-                        try {
-                            receiveClient.abandon(message.getLockToken());
-                        } catch (InterruptedException | ServiceBusException ex) {
-                            ex.printStackTrace();
-                        }
-                        throw e;
+                        log.info("Abandoned message:" + message.getLockToken());
+                        receiveClient.abandon(message.getLockToken());
+                    } catch (InterruptedException | ServiceBusException ex) {
+                        ex.printStackTrace();
                     }
-                    System.out.printf(
-                            "\n\t\t\t\t%s Message received: \n\t\t\t\t\t\tMessageId = %s, \n\t\t\t\t\t\tSequenceNumber = %s, \n\t\t\t\t\t\tEnqueuedTimeUtc = %s," +
-                                    "\n\t\t\t\t\t\tExpiresAtUtc = %s, \n\t\t\t\t\t\tContentType = \"%s\",  \n\t\t\t\t\t\tContent: [ User Id = %s]\n",
-                            receiveClient.getEntityPath(),
-                            message.getMessageId(),
-                            message.getSequenceNumber(),
-                            message.getEnqueuedTimeUtc(),
-                            message.getExpiresAtUtc(),
-                            message.getContentType(),
-                            "",
-                            "");
+                    throw e;
+                }
+                System.out.printf(
+                        "\n\t\t\t\t%s Message received: \n\t\t\t\t\t\tMessageId = %s, \n\t\t\t\t\t\tSequenceNumber = %s, \n\t\t\t\t\t\tEnqueuedTimeUtc = %s," +
+                                "\n\t\t\t\t\t\tExpiresAtUtc = %s, \n\t\t\t\t\t\tContentType = \"%s\",  \n\t\t\t\t\t\tContent: [ User Id = %s]\n",
+                        receiveClient.getEntityPath(),
+                        message.getMessageId(),
+                        message.getSequenceNumber(),
+                        message.getEnqueuedTimeUtc(),
+                        message.getExpiresAtUtc(),
+                        message.getContentType(),
+                        "",
+                        "");
 
                 System.out.printf("Message consumed successfully..... ");
+                log.info("token.....{}", message.getLockToken());
                 return receiveClient.completeAsync(message.getLockToken());
             }
 
@@ -77,11 +89,35 @@ public class TopicConsumer1 {
             }
         };
 
-       ExecutorService executorService = Executors.newFixedThreadPool(1);
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
         receiveClient.registerMessageHandler(
-                messageHandler,new MessageHandlerOptions(1,
-                        false, Duration.ofMinutes(1), Duration.ofMinutes(1)), executorService);
+                messageHandler, new MessageHandlerOptions(1,
+                        false, Duration.ofSeconds(30), Duration.ofMinutes(5)),
+                executorService);
 
+    }
+
+    private static Integer waitForRas(ObjectMapper mapper, List<byte[]> body, int maxRetries) throws InterruptedException, IOException {
+        int value = 0;
+
+        for (int i = 0; i < maxRetries; i++) {
+            //RAS response
+            try {
+                log.info("Trying for " + i + " th time");
+                value = mapper.readValue(body.get(0), Integer.class);
+                log.info("value is successfully read as  "+ value);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (value == 111) {
+                log.info("call the break");
+                break;
+            } else {
+                log.info("Sleeeeeeeeeeeeeeeeeeeeepppppppppp");
+                Thread.sleep(1000);
+            }
+        }
+        return value;
     }
 
 
