@@ -64,7 +64,6 @@ public class TopicConsumer1 {
                             break;
                         }
                     }
-                    ///receiveClient.abandon(message.getLockToken());
 
                 } catch (IOException e) {
                     try {
@@ -76,17 +75,22 @@ public class TopicConsumer1 {
                     log.error("throwing exception for unprocessable message");
                     throw e;
                 }
-                System.out.printf(
-                        "\n\t\t\t\t%s Message received: \n\t\t\t\t\t\tMessageId = %s, \n\t\t\t\t\t\tSequenceNumber = %s, \n\t\t\t\t\t\tEnqueuedTimeUtc = %s," +
-                                "\n\t\t\t\t\t\tExpiresAtUtc = %s, \n\t\t\t\t\t\tContentType = \"%s\",  \n\t\t\t\t\t\tContent: [ User Id = %s]\n",
-                        receiveClient.getEntityPath(),
-                        message.getMessageId(),
-                        message.getSequenceNumber(),
-                        message.getEnqueuedTimeUtc(),
-                        message.getExpiresAtUtc(),
-                        message.getContentType(),
-                        "",
-                        "");
+                if (users != null) {
+                    System.out.printf(
+                            "\n\t\t\t\t%s Message received: \n\t\t\t\t\t\tMessageId = %s, \n\t\t\t\t\t\tSequenceNumber = %s, \n\t\t\t\t\t\tEnqueuedTimeUtc = %s," +
+                                    "\n\t\t\t\t\t\tExpiresAtUtc = %s, \n\t\t\t\t\t\tContentType = \"%s\",  \n\t\t\t\t\t\tContent: [ User Id = %s]\n",
+                            receiveClient.getEntityPath(),
+                            message.getMessageId(),
+                            message.getSequenceNumber(),
+                            message.getEnqueuedTimeUtc(),
+                            message.getExpiresAtUtc(),
+                            message.getContentType(),
+                            "",
+                            "");
+                }
+                else{
+                    log.info("Users is NULL");
+                }
 
                 //System.out.printf("Message consumed successfully..... ");
                 //log.info("token before marking as complete.....{}", message.getLockToken());
@@ -111,12 +115,12 @@ public class TopicConsumer1 {
         // Call Health check
         log.info("Calling the health check");
         double var = Math.random();
-        if(var < 0.50) {
+        if (var > 0.99) {
             log.info("Sleeping for 2 seconds");
             Thread.sleep(2000);
             return false;
         }
-        return true;
+        return false;
     }
 
 }
