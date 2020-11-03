@@ -55,7 +55,7 @@ public class TopicConsumer1 {
 
                     //int maxRetries = 3;
                     //users = waitForRas(mapper, body, maxRetries);
-                    Thread.sleep(1000 * 10);
+                    Thread.sleep(1000 * 12);
                     users = mapper.readValue(body.get(0), Integer.class);
 
                 } catch (IOException e) {
@@ -92,7 +92,7 @@ public class TopicConsumer1 {
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         receiveClient.registerMessageHandler(
                 messageHandler, new MessageHandlerOptions(1,
-                        false, Duration.ofSeconds(30), Duration.ofMinutes(5)),
+                        false, Duration.ofSeconds(11), Duration.ofMinutes(5)),
                 executorService);
 
     }
