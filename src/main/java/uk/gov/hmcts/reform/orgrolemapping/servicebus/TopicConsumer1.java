@@ -30,9 +30,9 @@ public class TopicConsumer1 {
     public static void main(String[] args) throws Exception {
         String connectionString = "Endpoint=sb://rd-servicebus-sandbox.servicebus.windows.net/;SharedAccessKeyName=SendAndListenSharedAccessKey;SharedAccessKey=97E6uvE6xHcqHAVlxufN1PH75tMHoZUe78FhsCbLLLQ=";
         SubscriptionClient subscription1Client = new SubscriptionClient(new ConnectionStringBuilder(connectionString, "rd-caseworker-topic-sandbox/subscriptions/temporary"), ReceiveMode.PEEKLOCK);
-        SubscriptionClient subscription2Client = new SubscriptionClient(new ConnectionStringBuilder(connectionString, "rd-caseworker-topic-sandbox/subscriptions/temporary"), ReceiveMode.PEEKLOCK);
+        //SubscriptionClient subscription2Client = new SubscriptionClient(new ConnectionStringBuilder(connectionString, "rd-caseworker-topic-sandbox/subscriptions/temporary"), ReceiveMode.PEEKLOCK);
         registerMessageHandlerOnClient(subscription1Client);
-        registerMessageHandlerOnClient(subscription2Client);
+        //registerMessageHandlerOnClient(subscription2Client);
 
         log.info("clients registered.....");
     }
@@ -55,8 +55,16 @@ public class TopicConsumer1 {
 
                     //int maxRetries = 3;
                     //users = waitForRas(mapper, body, maxRetries);
-                    Thread.sleep(1000 * 12);
-                    users = mapper.readValue(body.get(0), Integer.class);
+                    for (int i = 0; i < maxRetries; i++) {
+                        log.info("Iteration number :" + i);
+                        if (roleAssignmentHealthCheck()) {
+                            log.info("Parsing the value.");
+                            users = mapper.readValue(body.get(0), Integer.class);
+                            log.info("Parsing Complete");
+                            break;
+                        }
+                    }
+                    ///receiveClient.abandon(message.getLockToken());
 
                 } catch (IOException e) {
                     try {
@@ -65,6 +73,7 @@ public class TopicConsumer1 {
                     } catch (InterruptedException | ServiceBusException ex) {
                         ex.printStackTrace();
                     }
+                    log.error("throwing exception for unprocessable message");
                     throw e;
                 }
                 System.out.printf(
@@ -79,12 +88,13 @@ public class TopicConsumer1 {
                         "",
                         "");
 
-                System.out.printf("Message consumed successfully..... ");
-                log.info("token.....{}", message.getLockToken());
+                //System.out.printf("Message consumed successfully..... ");
+                //log.info("token before marking as complete.....{}", message.getLockToken());
                 return receiveClient.completeAsync(message.getLockToken());
             }
 
             public void notifyException(Throwable throwable, ExceptionPhase exceptionPhase) {
+                log.error("Exception occured.");
                 System.out.printf(exceptionPhase + "-" + throwable.getMessage());
             }
         };
@@ -92,33 +102,21 @@ public class TopicConsumer1 {
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         receiveClient.registerMessageHandler(
                 messageHandler, new MessageHandlerOptions(1,
-                        false, Duration.ofSeconds(11), Duration.ofMinutes(5)),
+                        false, Duration.ofSeconds(30), Duration.ofMinutes(5)),
                 executorService);
 
     }
 
-    private static Integer waitForRas(ObjectMapper mapper, List<byte[]> body, int maxRetries) throws InterruptedException, IOException {
-        int value = 0;
-
-        for (int i = 0; i < maxRetries; i++) {
-            //RAS response
-            try {
-                log.info("Trying for " + i + " th time");
-                value = mapper.readValue(body.get(0), Integer.class);
-                log.info("value is successfully read as  "+ value);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            if (value == 111) {
-                log.info("call the break");
-                break;
-            } else {
-                log.info("Sleeeeeeeeeeeeeeeeeeeeepppppppppp");
-                Thread.sleep(1000);
-            }
+    private static boolean roleAssignmentHealthCheck() throws InterruptedException {
+        // Call Health check
+        log.info("Calling the health check");
+        double var = Math.random();
+        if(var < 0.50) {
+            log.info("Sleeping for 2 seconds");
+            Thread.sleep(2000);
+            return false;
         }
-        return value;
+        return true;
     }
-
 
 }
