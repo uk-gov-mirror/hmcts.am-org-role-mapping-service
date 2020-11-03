@@ -70,7 +70,7 @@ public class TopicConsumerFromExample {
                 subscription3Client.closeAsync())
                 .join();
 
-        executorService.shutdown();
+        //executorService.shutdown();
     }
 
     CompletableFuture<Void> sendMessagesAsync(TopicClient sendClient) {
@@ -145,14 +145,14 @@ public class TopicConsumerFromExample {
                     }
                 },
                 // 1 concurrent call, messages are auto-completed, auto-renew duration
-                new MessageHandlerOptions(1, false, Duration.ofMinutes(1)),
+                new MessageHandlerOptions(1, false,
+                        Duration.ofMinutes(1), Duration.ofMinutes(1)),
                 executorService);
 
     }
 
     public static void main(String[] args) {
-
-        System.exit(runApp(args, (connectionString) -> {
+        runApp(args, (connectionString) -> {
             TopicConsumerFromExample app = new TopicConsumerFromExample();
             try {
 
@@ -162,7 +162,7 @@ public class TopicConsumerFromExample {
                 System.out.printf("%s", e.toString());
                 return 1;
             }
-        }));
+        });
     }
 
     static final String SB_SAMPLES_CONNECTIONSTRING = "SB_SAMPLES_CONNECTIONSTRING";
