@@ -98,7 +98,7 @@ public class TopicConsumer1 {
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         receiveClient.registerMessageHandler(
                 messageHandler, new MessageHandlerOptions(1,
-                        false, Duration.ofSeconds(90), Duration.ofMinutes(5)),
+                        false, Duration.ofSeconds(10), Duration.ofMinutes(5)),
                 executorService);
 
     }
