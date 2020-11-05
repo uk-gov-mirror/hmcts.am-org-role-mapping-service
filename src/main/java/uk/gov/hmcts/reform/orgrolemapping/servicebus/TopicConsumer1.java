@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.orgrolemapping.servicebus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.google.gson.Gson;
 import com.microsoft.azure.servicebus.ExceptionPhase;
 import com.microsoft.azure.servicebus.IMessage;
 import com.microsoft.azure.servicebus.IMessageHandler;
@@ -10,11 +9,13 @@ import com.microsoft.azure.servicebus.MessageHandlerOptions;
 import com.microsoft.azure.servicebus.ReceiveMode;
 import com.microsoft.azure.servicebus.SubscriptionClient;
 import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
+import com.microsoft.azure.servicebus.primitives.RetryExponential;
+import com.microsoft.azure.servicebus.primitives.RetryPolicy;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
+import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -27,12 +28,22 @@ import java.util.logging.Logger;
 @Slf4j
 public class TopicConsumer1 {
 
-    static final Gson GSON = new Gson();
-    static final int MAX_RETRIES = 3;
+    static final int MAX_RETRIES = 1;
+
+    static RetryPolicy retryPolicy;// = RetryExponential.getDefault();
 
     public static void main(String[] args) throws Exception {
-        String connectionString = "Endpoint=sb://rd-servicebus-sandbox.servicebus.windows.net/;SharedAccessKeyName=SendAndListenSharedAccessKey;SharedAccessKey=97E6uvE6xHcqHAVlxufN1PH75tMHoZUe78FhsCbLLLQ=";
-        SubscriptionClient subscription1Client = new SubscriptionClient(new ConnectionStringBuilder(connectionString, "rd-caseworker-topic-sandbox/subscriptions/temporary"), ReceiveMode.PEEKLOCK);
+        retryPolicy = new RetryExponential(Duration.ofSeconds(10),Duration.ofMinutes(1),50,"customRetryPolicy");
+        System.out.println(retryPolicy.toString());
+        URI endpoint = new URI("sb://rd-servicebus-sandbox.servicebus.windows.net");
+        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder(
+                endpoint,"rd-caseworker-topic-sandbox/subscriptions/temporary",
+                "SendAndListenSharedAccessKey",
+                "97E6uvE6xHcqHAVlxufN1PH75tMHoZUe78FhsCbLLLQ=");
+        connectionStringBuilder.setOperationTimeout(Duration.ofMinutes(10));
+        connectionStringBuilder.setRetryPolicy(retryPolicy);
+
+        SubscriptionClient subscription1Client = new SubscriptionClient(connectionStringBuilder, ReceiveMode.PEEKLOCK);
         registerMessageHandlerOnClient(subscription1Client);
         log.info("clients registered.....");
     }
@@ -53,14 +64,16 @@ public class TopicConsumer1 {
                 try {
                     for (int i = 0; i < MAX_RETRIES; i++) {
                         log.info("Iteration number :" + i);
-                        if (roleAssignmentHealthCheck()) {
+                        throw new ServiceBusException(true);
+                       /* if (roleAssignmentHealthCheck()) {
                             log.info("Parsing the value.");
                             users = mapper.readValue(body.get(0), Integer.class);
+                            // Process the message in a separate method
                             log.info("Parsing Complete");
                             break;
-                        }
+                        }*/
                     }
-                } catch (IOException e) {
+                } catch (Exception e) { // Throwable introduces the Sonar issues
                     try {
                         log.info("Abandoned message:" + message.getLockToken());
                         receiveClient.abandon(message.getLockToken());
@@ -72,6 +85,7 @@ public class TopicConsumer1 {
                     throw e;
                 }
                 if (users != null) {
+                    //Actual processing
                     log.info(
                             "\n\t\t\t\t%s Message received: \n\t\t\t\t\t\tMessageId = %s, \n\t\t\t\t\t\tSequenceNumber = %s, \n\t\t\t\t\t\tEnqueuedTimeUtc = %s," +
                                     "\n\t\t\t\t\t\tExpiresAtUtc = %s, \n\t\t\t\t\t\tContentType = \"%s\",  \n\t\t\t\t\t\tContent: [ User Id = %s]\n",
@@ -83,6 +97,8 @@ public class TopicConsumer1 {
                             message.getContentType(),
                             "",
                             "");
+
+                    // Success only if Users != null
                 } else {
                     log.info("Users is NULL");
                 }
@@ -98,7 +114,7 @@ public class TopicConsumer1 {
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         receiveClient.registerMessageHandler(
                 messageHandler, new MessageHandlerOptions(1,
-                        false, Duration.ofSeconds(10), Duration.ofMinutes(5)),
+                        false, Duration.ofMinutes(5), Duration.ofMinutes(5)),
                 executorService);
 
     }

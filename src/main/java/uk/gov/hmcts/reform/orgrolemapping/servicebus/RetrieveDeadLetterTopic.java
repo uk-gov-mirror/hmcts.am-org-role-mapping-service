@@ -99,6 +99,7 @@ public class RetrieveDeadLetterTopic {
             while (message != null) {
                 /*if (canBeCompleted(message)) {
                     logMessage(message);*/
+                //DO not log user ID's
                 log.info("Message is : " + mapper.readValue(message.getMessageBody().getBinaryData().get(0), String.class));
                 log.info("Message logging complete");
                     messageReceiver.complete(message.getLockToken());
