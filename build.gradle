@@ -396,7 +396,7 @@ dependencies {
 
     compile group: 'com.microsoft.azure', name: 'azure', version: '1.37.0'
     /*compile group: 'com.microsoft.azure', name: 'azure-storage', version: '8.6.5'*/
-    compile group: 'com.microsoft.azure', name: 'azure-servicebus', version: '3.3.0'
+    compile group: 'com.microsoft.azure', name: 'azure-servicebus', version: '3.4.0'
     compile group: 'io.projectreactor', name: 'reactor-core', version: '3.4.0'
 
     compile group: 'com.azure', name: 'azure-core', version: '1.10.0'
