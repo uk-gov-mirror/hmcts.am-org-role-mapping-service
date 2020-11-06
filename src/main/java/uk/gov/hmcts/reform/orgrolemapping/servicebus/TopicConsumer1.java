@@ -123,8 +123,7 @@ public class TopicConsumer1 {
         log.info("Parsing the value.");
         users = mapper.readValue(body.get(0), Integer.class);
         if (users != null) {
-            //Actual processing
-            log.info(
+            log.info(String.format(
                     "\n\t\t\t\t%s Message received: \n\t\t\t\t\t\tMessageId = %s," +
                             " \n\t\t\t\t\t\tSequenceNumber = %s, \n\t\t\t\t\t\tEnqueuedTimeUtc = %s," +
                             "\n\t\t\t\t\t\tExpiresAtUtc = %s, \n\t\t\t\t\t\tContentType = \"%s\"," +
@@ -135,15 +134,13 @@ public class TopicConsumer1 {
                     message.getEnqueuedTimeUtc(),
                     message.getExpiresAtUtc(),
                     message.getContentType(),
-                    "",
-                    "");
+                    users));
             return true;
 
         } else {
             log.info("Users is NULL");
             receiveClient.abandon(message.getLockToken());
         }
-        // Process the message in a separate method
         log.info("Parsing Complete");
         return false;
     }
