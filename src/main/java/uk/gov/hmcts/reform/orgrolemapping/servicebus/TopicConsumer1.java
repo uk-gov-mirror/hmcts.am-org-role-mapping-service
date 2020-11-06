@@ -40,7 +40,7 @@ public class TopicConsumer1 {
     @Value("${amqp.sharedAccessKeyValue}")
     String sharedAccessKeyValue;
 
-    final int MAX_RETRIES = 1;
+    final int MAX_RETRIES = 3;
 
     @Bean
     public SubscriptionClient getSubscriptionClient(@Autowired RetryPolicy retryPolicy) throws URISyntaxException, ServiceBusException, InterruptedException {
@@ -78,18 +78,13 @@ public class TopicConsumer1 {
             public CompletableFuture<Void> onMessageAsync(IMessage message) {
                 log.info("onMessageAsync.....{}", message);
                 List<byte[]> body = message.getMessageBody().getBinaryData();
-                log.info("body.....{}", body);
                 log.info("token.....{}", message.getLockToken());
-                Integer users = null;
                 try {
                     for (int i = 0; i < MAX_RETRIES; i++) {
                         log.info("Iteration number :" + i);
-                        //throw new ServiceBusException(true);
                         if (roleAssignmentHealthCheck()) {
-                            log.info("Parsing the value.");
-                            users = mapper.readValue(body.get(0), Integer.class);
-                            // Process the message in a separate method
-                            log.info("Parsing Complete");
+                            if (parseMessage(message, body, mapper, receiveClient))
+                                return receiveClient.completeAsync(message.getLockToken());
                             break;
                         }
                     }
@@ -104,25 +99,8 @@ public class TopicConsumer1 {
                     log.error("throwing exception for unprocessable message");
                     throw e;
                 }
-                if (users != null) {
-                    //Actual processing
-                    log.info(
-                            "\n\t\t\t\t%s Message received: \n\t\t\t\t\t\tMessageId = %s, \n\t\t\t\t\t\tSequenceNumber = %s, \n\t\t\t\t\t\tEnqueuedTimeUtc = %s," +
-                                    "\n\t\t\t\t\t\tExpiresAtUtc = %s, \n\t\t\t\t\t\tContentType = \"%s\",  \n\t\t\t\t\t\tContent: [ User Id = %s]\n",
-                            receiveClient.getEntityPath(),
-                            message.getMessageId(),
-                            message.getSequenceNumber(),
-                            message.getEnqueuedTimeUtc(),
-                            message.getExpiresAtUtc(),
-                            message.getContentType(),
-                            "",
-                            "");
+                return null;
 
-                    // Success only if Users != null
-                } else {
-                    log.info("Users is NULL");
-                }
-                return receiveClient.completeAsync(message.getLockToken());
             }
 
             public void notifyException(Throwable throwable, ExceptionPhase exceptionPhase) {
@@ -140,11 +118,41 @@ public class TopicConsumer1 {
 
     }
 
+    private boolean parseMessage(IMessage message, List<byte[]> body, ObjectMapper mapper, SubscriptionClient receiveClient) throws java.io.IOException, InterruptedException, ServiceBusException {
+        Integer users;
+        log.info("Parsing the value.");
+        users = mapper.readValue(body.get(0), Integer.class);
+        if (users != null) {
+            //Actual processing
+            log.info(
+                    "\n\t\t\t\t%s Message received: \n\t\t\t\t\t\tMessageId = %s," +
+                            " \n\t\t\t\t\t\tSequenceNumber = %s, \n\t\t\t\t\t\tEnqueuedTimeUtc = %s," +
+                            "\n\t\t\t\t\t\tExpiresAtUtc = %s, \n\t\t\t\t\t\tContentType = \"%s\"," +
+                            "  \n\t\t\t\t\t\tContent: [ User Id = %s]\n",
+                    receiveClient.getEntityPath(),
+                    message.getMessageId(),
+                    message.getSequenceNumber(),
+                    message.getEnqueuedTimeUtc(),
+                    message.getExpiresAtUtc(),
+                    message.getContentType(),
+                    "",
+                    "");
+            return true;
+
+        } else {
+            log.info("Users is NULL");
+            receiveClient.abandon(message.getLockToken());
+        }
+        // Process the message in a separate method
+        log.info("Parsing Complete");
+        return false;
+    }
+
     private static boolean roleAssignmentHealthCheck() throws InterruptedException {
         // Call Health check
         log.info("Calling the health check");
         double var = Math.random();
-        if (var > 0.50) {
+        if (var > 0.90) {
             log.info("Sleeping for 2 seconds");
             Thread.sleep(2000);
             return false;
