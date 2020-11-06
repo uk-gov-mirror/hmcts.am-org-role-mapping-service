@@ -21,9 +21,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Slf4j
 public class TopicConsumer1 {
@@ -33,11 +30,11 @@ public class TopicConsumer1 {
     static RetryPolicy retryPolicy;// = RetryExponential.getDefault();
 
     public static void main(String[] args) throws Exception {
-        retryPolicy = new RetryExponential(Duration.ofSeconds(10),Duration.ofMinutes(1),50,"customRetryPolicy");
+        retryPolicy = new RetryExponential(Duration.ofSeconds(10), Duration.ofMinutes(1), 50, "customRetryPolicy");
         System.out.println(retryPolicy.toString());
         URI endpoint = new URI("sb://rd-servicebus-sandbox.servicebus.windows.net");
         ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder(
-                endpoint,"rd-caseworker-topic-sandbox/subscriptions/temporary",
+                endpoint, "rd-caseworker-topic-sandbox/subscriptions/temporary",
                 "SendAndListenSharedAccessKey",
                 "97E6uvE6xHcqHAVlxufN1PH75tMHoZUe78FhsCbLLLQ=");
         connectionStringBuilder.setOperationTimeout(Duration.ofMinutes(10));
@@ -64,16 +61,16 @@ public class TopicConsumer1 {
                 try {
                     for (int i = 0; i < MAX_RETRIES; i++) {
                         log.info("Iteration number :" + i);
-                        throw new ServiceBusException(true);
-                       /* if (roleAssignmentHealthCheck()) {
+                        //throw new ServiceBusException(true);
+                        if (roleAssignmentHealthCheck()) {
                             log.info("Parsing the value.");
                             users = mapper.readValue(body.get(0), Integer.class);
                             // Process the message in a separate method
                             log.info("Parsing Complete");
                             break;
-                        }*/
+                        }
                     }
-                } catch (Exception e) { // Throwable introduces the Sonar issues
+                } catch (Exception e) { // java.lang.Throwable introduces the Sonar issues
                     try {
                         log.info("Abandoned message:" + message.getLockToken());
                         receiveClient.abandon(message.getLockToken());
@@ -131,13 +128,13 @@ public class TopicConsumer1 {
         return true;
     }
 
-    public static void setLevel(Level targetLevel) {
+    /*public static void setLevel(Level targetLevel) {
         Logger root = Logger.getLogger("");
         root.setLevel(targetLevel);
         for (Handler handler : root.getHandlers()) {
             handler.setLevel(targetLevel);
         }
         log.info("level set: " + targetLevel.getName());
-    }
+    }*/
 
 }
