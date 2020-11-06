@@ -106,14 +106,13 @@ OrgRoleMappingUrl: ${TEST_URL:http://localhost:4098}
 roleAssignmentAppUrl: ${ROLE_ASSIGNMENT_APP_URL:http://localhost:4096}
 
 amqp:
-  host: ${AMQP_HOST:rd-servicebus-sandbox.servicebus.windows.net}
-  username: ${AMQP_USERNAME:SendAndListenSharedAccessKey}
-  password: ${AMQP_PASSWORD:5ZXxCOCaJsvA/8uojXxqPfk6oJZr/xkyJe47vevc48s=}
-  topic: ${TOPIC_NAME:rd-caseworker-topic-sandbox}
+  host: ${AMQP_HOST:sb://rd-servicebus-sandbox.servicebus.windows.net}
+  sharedAccessKeyName: ${AMQP_USERNAME:SendAndListenSharedAccessKey}
+  sharedAccessKeyValue: ${AMQP_PASSWORD:97E6uvE6xHcqHAVlxufN1PH75tMHoZUe78FhsCbLLLQ=}
+  topic: ${TOPIC_NAME:rd-caseworker-topic-sandbox/subscriptions/temporary}
   subscription: ${SUBSCRIPTION_NAME:rd-caseworker-subscription-sandbox}
   # DO NOT SET THIS 'true' IN PRODUCTION!
   trustAllCerts: ${TRUST_ALL_CERTS:true}
-
 
 send-letter:
   url: ${SEND_LETTER_SERVICE_BASEURL:http://localhost:4021}

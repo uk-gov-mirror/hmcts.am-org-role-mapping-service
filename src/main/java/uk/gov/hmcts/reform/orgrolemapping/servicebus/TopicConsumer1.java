@@ -14,8 +14,13 @@ import com.microsoft.azure.servicebus.primitives.RetryPolicy;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -23,32 +28,50 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Slf4j
+@Component
 public class TopicConsumer1 {
 
-    static final int MAX_RETRIES = 1;
+    @Value("${amqp.host}")
+    String host;
+    @Value("${amqp.topic}")
+    String topic;
+    @Value("${amqp.sharedAccessKeyName}")
+    String sharedAccessKeyName;
+    @Value("${amqp.sharedAccessKeyValue}")
+    String sharedAccessKeyValue;
 
-    static RetryPolicy retryPolicy;// = RetryExponential.getDefault();
+    final int MAX_RETRIES = 1;
 
-    public static void main(String[] args) throws Exception {
-        retryPolicy = new RetryExponential(Duration.ofSeconds(10), Duration.ofMinutes(1), 50, "customRetryPolicy");
-        System.out.println(retryPolicy.toString());
-        URI endpoint = new URI("sb://rd-servicebus-sandbox.servicebus.windows.net");
+    @Bean
+    public SubscriptionClient getSubscriptionClient(@Autowired RetryPolicy retryPolicy) throws URISyntaxException, ServiceBusException, InterruptedException {
+        URI endpoint = new URI(host);
+
         ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder(
-                endpoint, "rd-caseworker-topic-sandbox/subscriptions/temporary",
-                "SendAndListenSharedAccessKey",
-                "97E6uvE6xHcqHAVlxufN1PH75tMHoZUe78FhsCbLLLQ=");
+                endpoint,
+                topic,
+                sharedAccessKeyName,
+                sharedAccessKeyValue);
+
         connectionStringBuilder.setOperationTimeout(Duration.ofMinutes(10));
         connectionStringBuilder.setRetryPolicy(retryPolicy);
 
-        SubscriptionClient subscription1Client = new SubscriptionClient(connectionStringBuilder, ReceiveMode.PEEKLOCK);
-        registerMessageHandlerOnClient(subscription1Client);
-        log.info("clients registered.....");
+        return new SubscriptionClient(connectionStringBuilder, ReceiveMode.PEEKLOCK);
     }
 
-    static void registerMessageHandlerOnClient(SubscriptionClient receiveClient) throws Exception {
+    @Bean
+    RetryPolicy getRetryPolicy() {
+        return new RetryExponential(Duration.ofSeconds(10),
+                Duration.ofMinutes(1),
+                50,
+                "customRetryPolicy");
+    }
+
+    @Bean
+    CompletableFuture<Void> registerMessageHandlerOnClient(@Autowired SubscriptionClient receiveClient) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         log.info("registerMessageHandlerOnClient.....");
+
         IMessageHandler messageHandler = new IMessageHandler() {
             // callback invoked when the message handler loop has obtained a message
             @SneakyThrows
@@ -113,6 +136,7 @@ public class TopicConsumer1 {
                 messageHandler, new MessageHandlerOptions(1,
                         false, Duration.ofMinutes(5), Duration.ofMinutes(5)),
                 executorService);
+        return null;
 
     }
 
@@ -127,14 +151,5 @@ public class TopicConsumer1 {
         }
         return true;
     }
-
-    /*public static void setLevel(Level targetLevel) {
-        Logger root = Logger.getLogger("");
-        root.setLevel(targetLevel);
-        for (Handler handler : root.getHandlers()) {
-            handler.setLevel(targetLevel);
-        }
-        log.info("level set: " + targetLevel.getName());
-    }*/
 
 }
