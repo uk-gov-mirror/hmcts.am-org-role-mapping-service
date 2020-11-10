@@ -62,7 +62,7 @@ public class TopicConsumer1 {
     RetryPolicy getRetryPolicy() {
         return new RetryExponential(Duration.ofSeconds(10),
                 Duration.ofMinutes(1),
-                50,
+                2,
                 "customRetryPolicy");
     }
 
@@ -82,11 +82,15 @@ public class TopicConsumer1 {
                 try {
                     for (int i = 0; i < MAX_RETRIES; i++) {
                         log.info("Iteration number :" + i);
+                        log.info("getLockedUntilUtc" + message.getLockedUntilUtc());
+                        log.info("getDeliveryCount value :" + message.getDeliveryCount());
                         if (roleAssignmentHealthCheck()) {
                             if (parseMessage(message, body, mapper, receiveClient))
                                 return receiveClient.completeAsync(message.getLockToken());
                             break;
                         }
+                        log.info("getLockToken......{}", message.getLockToken());
+
                     }
                 } catch (Exception e) { // java.lang.Throwable introduces the Sonar issues
                     try {
@@ -99,7 +103,8 @@ public class TopicConsumer1 {
                     log.error("throwing exception for unprocessable message");
                     throw e;
                 }
-                return null;
+                log.info("before completeAsync");
+                return receiveClient.completeAsync(message.getLockToken());
 
             }
 
@@ -112,8 +117,9 @@ public class TopicConsumer1 {
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         receiveClient.registerMessageHandler(
                 messageHandler, new MessageHandlerOptions(1,
-                        false, Duration.ofMinutes(5), Duration.ofMinutes(5)),
+                        false, Duration.ofHours(1), Duration.ofMinutes(5)),
                 executorService);
+        log.info("before null");
         return null;
 
     }
@@ -149,12 +155,11 @@ public class TopicConsumer1 {
         // Call Health check
         log.info("Calling the health check");
         double var = Math.random();
-        if (var > 0.90) {
-            log.info("Sleeping for 2 seconds");
-            Thread.sleep(2000);
+        if (1 > 0.90) {
+            log.info("Sleeping for 3 minutes");
+            Thread.sleep(1000 * 60 * 3);
             return false;
         }
-        return true;
+        return false;
     }
-
 }
