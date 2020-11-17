@@ -40,7 +40,7 @@ public class TopicConsumer1 {
     @Value("${amqp.sharedAccessKeyValue}")
     String sharedAccessKeyValue;
 
-    final int MAX_RETRIES = 3;
+    final int MAX_RETRIES = 1;
 
     @Bean
     public SubscriptionClient getSubscriptionClient(@Autowired RetryPolicy retryPolicy) throws URISyntaxException, ServiceBusException, InterruptedException {
@@ -79,9 +79,10 @@ public class TopicConsumer1 {
                 log.info("onMessageAsync.....{}", message);
                 List<byte[]> body = message.getMessageBody().getBinaryData();
                 log.info("token.....{}", message.getLockToken());
-                try {
-                    for (int i = 0; i < MAX_RETRIES; i++) {
-                        log.info("Iteration number :" + i);
+
+                for (int retry = 0; retry < MAX_RETRIES; retry++) {
+                    try {
+                        log.info("Iteration number :" + retry);
                         log.info("getLockedUntilUtc" + message.getLockedUntilUtc());
                         log.info("getDeliveryCount value :" + message.getDeliveryCount());
                         if (roleAssignmentHealthCheck()) {
@@ -91,20 +92,17 @@ public class TopicConsumer1 {
                         }
                         log.info("getLockToken......{}", message.getLockToken());
 
+                    } catch (Exception e) { // java.lang.Throwable introduces the Sonar issues
+                            log.error("Unprocessable message...........retry {}", retry);
+                            //log.info("Abandoning message after 3 retrials :" + message.getLockToken());
+                            //receiveClient.abandon(message.getLockToken());
+                            throw e;
                     }
-                } catch (Exception e) { // java.lang.Throwable introduces the Sonar issues
-                    try {
-                        log.info("Abandoned message:" + message.getLockToken());
-                        receiveClient.abandon(message.getLockToken());
-                    } catch (InterruptedException | ServiceBusException ex) {
-                        ex.printStackTrace();
-                        throw ex;
-                    }
-                    log.error("throwing exception for unprocessable message");
-                    throw e;
                 }
                 log.info("before completeAsync");
-                return receiveClient.completeAsync(message.getLockToken());
+                //receiveClient.abandon(message.getLockToken());
+                log.info("Finally getLockedUntilUtc" + message.getLockedUntilUtc());
+                return null;
 
             }
 
@@ -145,7 +143,7 @@ public class TopicConsumer1 {
 
         } else {
             log.info("Users is NULL");
-            receiveClient.abandon(message.getLockToken());
+            //receiveClient.abandon(message.getLockToken());
         }
         log.info("Parsing Complete");
         return false;
@@ -155,9 +153,9 @@ public class TopicConsumer1 {
         // Call Health check
         log.info("Calling the health check");
         double var = Math.random();
-        if (1 > 0.90) {
-            log.info("Sleeping for 3 minutes");
-            Thread.sleep(1000 * 60 * 3);
+        if (0.1 > 0.90) {
+            log.info("Sleeping for 5 minutes");
+            Thread.sleep(1000 * 15);
             return false;
         }
         return false;
