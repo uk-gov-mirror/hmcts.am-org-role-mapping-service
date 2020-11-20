@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.orgrolemapping.domain.service.RoleAssignmentService;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -41,6 +42,9 @@ public class TopicConsumer1 {
     String sharedAccessKeyValue;
 
     final int MAX_RETRIES = 1;
+
+    @Autowired
+    private RoleAssignmentService roleAssignmentService;
 
     @Bean
     public SubscriptionClient getSubscriptionClient(@Autowired RetryPolicy retryPolicy) throws URISyntaxException, ServiceBusException, InterruptedException {
@@ -85,14 +89,16 @@ public class TopicConsumer1 {
                         log.info("Iteration number :" + retry);
                         log.info("getLockedUntilUtc" + message.getLockedUntilUtc());
                         log.info("getDeliveryCount value :" + message.getDeliveryCount());
+
                         if (roleAssignmentHealthCheck()) {
+                            log.info("getServiceStatus   {}", roleAssignmentService.getServiceStatus());
                             if (parseMessage(message, body, mapper, receiveClient))
                                 return receiveClient.completeAsync(message.getLockToken());
                             break;
                         }
                         log.info("getLockToken......{}", message.getLockToken());
 
-                    } catch (Exception e) { // java.lang.Throwable introduces the Sonar issues
+                    } catch (Throwable e) { // java.lang.Throwable introduces the Sonar issues
                             log.error("Unprocessable message...........retry {}", retry);
                             //log.info("Abandoning message after 3 retrials :" + message.getLockToken());
                             //receiveClient.abandon(message.getLockToken());
@@ -102,6 +108,7 @@ public class TopicConsumer1 {
                 log.info("before completeAsync");
                 //receiveClient.abandon(message.getLockToken());
                 log.info("Finally getLockedUntilUtc" + message.getLockedUntilUtc());
+                //return new CompletableFuture<Void>();
                 return null;
 
             }
@@ -139,6 +146,7 @@ public class TopicConsumer1 {
                     message.getExpiresAtUtc(),
                     message.getContentType(),
                     users));
+
             return true;
 
         } else {
@@ -158,6 +166,6 @@ public class TopicConsumer1 {
             Thread.sleep(1000 * 15);
             return false;
         }
-        return false;
+        return true;
     }
 }
