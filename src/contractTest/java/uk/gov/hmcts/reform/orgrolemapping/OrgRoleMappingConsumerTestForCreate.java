@@ -292,12 +292,4 @@ public class OrgRoleMappingConsumerTestForCreate {
         assertThat(requestedRoles.isEmpty(), equalTo(true));
     }
 
-//    @NotNull
-//    private Map<String, String> getRoleAssignmentResponseHeaders() {
-//        Map<String, String> responseHeaders = Maps.newHashMap();
-//        responseHeaders.put("Content-Type", "application/vnd.uk.gov.hmcts.role-assignment-service."
-//                + "create-assignments+json");
-//        return responseHeaders;
-//    }
-
 }

@@ -24,14 +24,14 @@ public class OrgRoleMappingTestUtil {
         switch (type) {
             case "getRole":
                 responseHeaders.put("Content-Type",
-                        "application/vnd.uk.gov.hmcts.role-assignment-service.get-roles" +
-                                "+json;charset=UTF-8;version=1.0");
+                        "application/vnd.uk.gov.hmcts.role-assignment-service.get-roles"
+                                + "+json;charset=UTF-8;version=1.0");
                 break;
 
             case "getAssignment":
                 responseHeaders.put("Content-Type",
-                        "application/vnd.uk.gov.hmcts.role-assignment-service.get-assignments" +
-                                "+json;charset=UTF-8;version=1.0");
+                        "application/vnd.uk.gov.hmcts.role-assignment-service.get-assignments"
+                                + "+json;charset=UTF-8;version=1.0");
                 break;
             case "create":
                 responseHeaders.put("Content-Type", "application/vnd.uk.gov.hmcts.role-assignment-service."
