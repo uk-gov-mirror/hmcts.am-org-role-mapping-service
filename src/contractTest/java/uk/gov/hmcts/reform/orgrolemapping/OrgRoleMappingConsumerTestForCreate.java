@@ -8,13 +8,11 @@ import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
-import com.google.common.collect.Maps;
 import groovy.util.logging.Slf4j;
 import io.restassured.http.ContentType;
 import net.serenitybdd.rest.SerenityRest;
 import org.apache.http.client.fluent.Executor;
 import org.assertj.core.api.Assertions;
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,16 +22,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.Map;
-
 import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static uk.gov.hmcts.reform.orgrolemapping.util.OrgRoleMappingTestUtil.getHttpHeaders;
+import static uk.gov.hmcts.reform.orgrolemapping.util.OrgRoleMappingTestUtil.getResponseHeaders;
 
 @Slf4j
 @ExtendWith(PactConsumerTestExt.class)
@@ -69,7 +66,7 @@ public class OrgRoleMappingConsumerTestForCreate {
                 .body(createRoleAssignmentRequest("false"), String.valueOf(ContentType.JSON))
                 .willRespondWith()
                 .status(HttpStatus.CREATED.value())
-                .headers(getRoleAssignmentResponseHeaders())
+                .headers(getResponseHeaders("create"))
                 .body(createRoleAssignmentResponse(false))
                 .toPact();
     }
@@ -85,7 +82,7 @@ public class OrgRoleMappingConsumerTestForCreate {
                 .body(createRoleAssignmentRequest("true"), String.valueOf(ContentType.JSON))
                 .willRespondWith()
                 .status(HttpStatus.CREATED.value())
-                .headers(getRoleAssignmentResponseHeaders())
+                .headers(getResponseHeaders("create"))
                 .body(createRoleAssignmentResponse(true))
                 .toPact();
     }
@@ -101,7 +98,7 @@ public class OrgRoleMappingConsumerTestForCreate {
                 .body(createRoleAssignmentRequestZeroRole(), String.valueOf(ContentType.JSON))
                 .willRespondWith()
                 .status(HttpStatus.CREATED.value())
-                .headers(getRoleAssignmentResponseHeaders())
+                .headers(getResponseHeaders("create"))
                 .body(createRoleAssignmentResponseZeroRole())
                 .toPact();
     }
@@ -295,18 +292,12 @@ public class OrgRoleMappingConsumerTestForCreate {
         assertThat(requestedRoles.isEmpty(), equalTo(true));
     }
 
-    @NotNull
-    private Map<String, String> getRoleAssignmentResponseHeaders() {
-        Map<String, String> responseHeaders = Maps.newHashMap();
-        responseHeaders.put("Content-Type", "application/vnd.uk.gov.hmcts.role-assignment-service."
-                + "create-assignments+json");
-        return responseHeaders;
-    }
+//    @NotNull
+//    private Map<String, String> getRoleAssignmentResponseHeaders() {
+//        Map<String, String> responseHeaders = Maps.newHashMap();
+//        responseHeaders.put("Content-Type", "application/vnd.uk.gov.hmcts.role-assignment-service."
+//                + "create-assignments+json");
+//        return responseHeaders;
+//    }
 
-    private HttpHeaders getHttpHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("ServiceAuthorization", "Bearer " + "1234");
-        headers.add("Authorization", "Bearer " + "2345");
-        return headers;
-    }
 }

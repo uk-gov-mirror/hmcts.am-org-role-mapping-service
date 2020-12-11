@@ -8,10 +8,8 @@ import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
-import com.google.common.collect.Maps;
 import net.serenitybdd.rest.SerenityRest;
 import org.apache.http.client.fluent.Executor;
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.After;
@@ -20,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -28,8 +25,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-
-import java.util.Map;
+import static uk.gov.hmcts.reform.orgrolemapping.util.OrgRoleMappingTestUtil.getHttpHeaders;
+import static uk.gov.hmcts.reform.orgrolemapping.util.OrgRoleMappingTestUtil.getResponseHeaders;
 
 @ExtendWith(PactConsumerTestExt.class)
 @ExtendWith(SpringExtension.class)
@@ -62,7 +59,7 @@ public class OrgRoleMappingConsumerTestForGetActorById {
                 .method(HttpMethod.GET.toString())
                 .willRespondWith()
                 .status(HttpStatus.OK.value())
-                .headers(getResponseHeaders())
+                .headers(getResponseHeaders("getAssignment"))
                 .body(createResponse())
                 .toPact();
     }
@@ -103,19 +100,5 @@ public class OrgRoleMappingConsumerTestForGetActorById {
                 )).build();
     }
 
-    @NotNull
-    private Map<String, String> getResponseHeaders() {
-        Map<String, String> responseHeaders = Maps.newHashMap();
-        responseHeaders.put("Content-Type",
-                "application/vnd.uk.gov.hmcts.role-assignment-service.get-assignments+json;charset=UTF-8;version=1.0");
-        return responseHeaders;
-    }
-
-    private HttpHeaders getHttpHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("ServiceAuthorization", "Bearer " + "1234");
-        headers.add("Authorization", "Bearer " + "2345");
-        return headers;
-    }
 
 }
