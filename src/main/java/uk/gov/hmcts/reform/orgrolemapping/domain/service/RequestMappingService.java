@@ -91,27 +91,22 @@ public class RequestMappingService<T> {
         roleAssignments.forEach(ra -> usersRoleAssignments.get(ra.getActorId()).add(ra));
 
         if (userType.equals(UserType.CASEWORKER)) {
-            // if List<RoleAssignment> is empty in case of suspended false in corresponding
-            // user access profile then remove
-            // entry of userProfile from usersRoleAssignments map
-            List<String> needToRemoveUAP = new ArrayList<>();
+            excludeInvalidProfile(usersAccessProfiles, usersRoleAssignments);
+
+        } else if(userType.equals(UserType.JUDICIAL)){
+
+            List<String> needToRemoveJAP = new ArrayList<>();
 
             //Identify the user with empty List<RoleAssignment> in case of suspended is false.
             usersRoleAssignments.forEach((k, v) -> {
                 if (v.isEmpty()) {
-                    Set<CaseWorkerAccessProfile> accessProfiles = (Set<CaseWorkerAccessProfile>) usersAccessProfiles
-                            .get(k);
-                    if (!Objects.requireNonNull(accessProfiles.stream().findFirst().orElse(null)).isSuspended()) {
-                        needToRemoveUAP.add(k);
-                    }
+                    needToRemoveJAP.add(k);
                 }
-
             });
 
             //remove the entry of user from map in case of empty if suspended is false
-
-            if (!needToRemoveUAP.isEmpty()) {
-                needToRemoveUAP.forEach(usersRoleAssignments::remove);
+            if (!needToRemoveJAP.isEmpty()) {
+                needToRemoveJAP.forEach(usersRoleAssignments::remove);
             }
 
         }
@@ -129,6 +124,32 @@ public class RequestMappingService<T> {
 
 
         return usersRoleAssignments;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void excludeInvalidProfile(Map<String, Set<T>> usersAccessProfiles, Map<String, List<RoleAssignment>> usersRoleAssignments) {
+        // if List<RoleAssignment> is empty in case of suspended false in corresponding
+        // user access profile then remove
+        // entry of userProfile from usersRoleAssignments map
+        List<String> needToRemoveUAP = new ArrayList<>();
+
+        //Identify the user with empty List<RoleAssignment> in case of suspended is false.
+        usersRoleAssignments.forEach((k, v) -> {
+            if (v.isEmpty()) {
+                Set<CaseWorkerAccessProfile> accessProfiles = (Set<CaseWorkerAccessProfile>) usersAccessProfiles
+                        .get(k);
+                if (!Objects.requireNonNull(accessProfiles.stream().findFirst().orElse(null)).isSuspended()) {
+                    needToRemoveUAP.add(k);
+                }
+            }
+
+        });
+
+        //remove the entry of user from map in case of empty if suspended is false
+
+        if (!needToRemoveUAP.isEmpty()) {
+            needToRemoveUAP.forEach(usersRoleAssignments::remove);
+        }
     }
 
     /**
