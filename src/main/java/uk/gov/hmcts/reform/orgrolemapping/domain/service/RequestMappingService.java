@@ -20,7 +20,7 @@ import uk.gov.hmcts.reform.orgrolemapping.domain.model.RoleAssignment;
 import uk.gov.hmcts.reform.orgrolemapping.domain.model.RoleAssignmentRequestResource;
 import uk.gov.hmcts.reform.orgrolemapping.domain.model.UserAccessProfile;
 import uk.gov.hmcts.reform.orgrolemapping.domain.model.enums.RequestType;
-import uk.gov.hmcts.reform.orgrolemapping.launchdarkly.LDEventListener;
+import uk.gov.hmcts.reform.orgrolemapping.launchdarkly.LDFlagRegister;
 import uk.gov.hmcts.reform.orgrolemapping.launchdarkly.LDFeatureFlag;
 import uk.gov.hmcts.reform.orgrolemapping.util.JacksonUtils;
 import uk.gov.hmcts.reform.orgrolemapping.util.SecurityUtils;
@@ -151,7 +151,7 @@ public class RequestMappingService {
 
         // Build the list of feature flag objects from static map.
         List<LDFeatureFlag> featureFlags = new ArrayList<>();
-        Map<String,Boolean> droolFlagStates = LDEventListener.getDroolFlagStates();
+        Map<String,Boolean> droolFlagStates = LDFlagRegister.getDroolFlagStates();
         for (String flag : droolFlagStates.keySet()) {
             LDFeatureFlag  featureFlag = LDFeatureFlag.builder()
                     .flagName(flag)

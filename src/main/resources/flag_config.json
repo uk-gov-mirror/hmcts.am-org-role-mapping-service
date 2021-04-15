@@ -1,5 +1,10 @@
 [
   {
+    "name": "orm-refresh-role",
+    "default": false,
+    "refresh": []
+  },
+  {
     "name": "get-ld-flag",
     "default": false,
     "refresh": [

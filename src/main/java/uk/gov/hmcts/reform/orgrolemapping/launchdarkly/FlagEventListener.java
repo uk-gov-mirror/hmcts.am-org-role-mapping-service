@@ -8,12 +8,12 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 @Service
-public class FeatureFlagListener {
+public class FlagEventListener {
 
     @Autowired
     private final LDClient ldClient;
 
-    public FeatureFlagListener(LDClient ldClient) {
+    public FlagEventListener(LDClient ldClient) {
         this.ldClient = ldClient;
     }
     //Auto event flow from LD
@@ -24,10 +24,12 @@ public class FeatureFlagListener {
                         user.getKey(), event.getOldValue(), event.getNewValue()
                 );
                 if(event.getNewValue() != event.getOldValue()){
-                    //1) Check if role-refresh-enabled flag is true and proceed with DB operation.
+                    // FlagRefreshService.UpdateFlagValue(event.getKey()--> flag name)
+                    //1) Check if orm-refresh-role flag is true on LD server. If yes then proceed with DB.
+                    //
                     //2) Retrieve the DB lock so that another running node cannot intervene and insert the updated value in the DB
                     //3) Once all DB operation are committed successfully update the droolFlagStates map
-                    Map<String,Boolean> droolFlagStates  =  LDEventListener.getDroolFlagStates();
+                    Map<String,Boolean> droolFlagStates  =  LDFlagRegister.getDroolFlagStates();
                     droolFlagStates.put(event.getKey(),event.getNewValue().booleanValue());
                 }
             });
