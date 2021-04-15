@@ -25,8 +25,9 @@ public class FlagEventListener {
                 );
                 if(event.getNewValue() != event.getOldValue()){
                     // FlagRefreshService.UpdateFlagValue(event.getKey()--> flag name)
-                    //1) Check if orm-refresh-role flag is true on LD server. If yes then proceed with DB.
-                    //
+                    //1) Check if orm-refresh-role flag is true on LD server. If yes then fetch all the registered flag names from
+                    //   in-memory map and fetch their latest value from LD.
+                    //   If New value is different than DB value then update DB and trigger the refresh job
                     //2) Retrieve the DB lock so that another running node cannot intervene and insert the updated value in the DB
                     //3) Once all DB operation are committed successfully update the droolFlagStates map
                     Map<String,Boolean> droolFlagStates  =  LDFlagRegister.getDroolFlagStates();
